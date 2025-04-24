@@ -5,7 +5,7 @@ import imgui as im
 from imgui import glfw
 
 # Define a DrawFunc as a callable that takes no arguments and returns a bool
-DrawFunc = Callable[[], bool]
+DrawFunc = Callable[[], None]
 
 
 def window_mainloop(title: str,
@@ -61,14 +61,14 @@ def window_mainloop(title: str,
         im.NewFrame()
 
         # Do GUI processing
-        shouldExit = draw()
+        draw()
 
         # Render the frame
         im.Render(window, clear_color)
         glfw.SwapBuffers(window)
 
         # if the draw func says we should exit, or the user clicked the close button
-        if shouldExit or glfw.WindowShouldClose(window):
+        if glfw.WindowShouldClose(window):
             break
 
     # do any cleanup tasks
