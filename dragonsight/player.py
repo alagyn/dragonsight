@@ -59,15 +59,15 @@ class Player:
             self._loadPlayer()
 
     _GET_ABILITIES = """
-    SELECT (abilityID, name, desc) FROM abilities
+    SELECT abilityID, name, desc FROM abilities
     """
 
     _GET_ROLLS = """
-    SELECT (rollID, abilityID, name, roll) FROM rolls
+    SELECT rollID, abilityID, name, roll FROM rolls
     """
 
     _GET_COUNTERS = """
-    SELECT (counterID, abilityID, name, max, value) FROM counters
+    SELECT counterID, abilityID, name, max, value FROM counters
     """
 
     def _loadPlayer(self):
@@ -109,3 +109,7 @@ class Player:
             curVal = int(next(x))
             counter = Counter(self.db, cID, aID, name, maxVal, curVal)
             aMap[aID].counters.append(counter)
+
+    def addAbility(self, name: str, desc: str):
+        a = Ability.new(self.db, name, desc)
+        self.abilities.append(a)

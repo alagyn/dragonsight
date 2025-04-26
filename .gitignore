@@ -1,1 +1,10 @@
 venv
+
+imgui.ini
+*.db
+
+.vscode
+.vs
+
+*/__pycache__/*
+*.pyc

@@ -1,16 +1,21 @@
 from .ui_boilerplate import window_mainloop
 
+from .abilityGrid import AbilityGrid
+from .player import Player
+
 
 class UI:
 
     def __init__(self):
-        pass
+        self.abilityGrid = AbilityGrid()
+        # TODO
+        self.player = Player("test.db")
 
     def ui_init(self):
         pass
 
     def render(self):
-        pass
+        self.abilityGrid.render(self.player)
 
     def cleanup(self):
         pass
