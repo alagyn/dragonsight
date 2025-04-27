@@ -1,5 +1,7 @@
 import enum
 
+from .action import Action, parseAction
+
 
 class FeatureType(enum.IntEnum):
     Flavor = enum.auto()
@@ -42,12 +44,58 @@ class Feature_Action(Feature):
         longDesc: str | None,
         resists: list[str],
         immunities: list[str],
-        ifStr: str,
-        thenStr: str
+        action: Action
     ) -> None:
         super().__init__(FeatureType.Action, name, unlock, shortDesc, longDesc, resists, immunities)
-        self.ifStr = ifStr
-        self.thenStr = thenStr
+        self.action = action
+
+
+class Feature_MultiAction(Feature):
+
+    def __init__(
+        self,
+        name: str,
+        unlock: int,
+        shortDesc: str,
+        longDesc: str | None,
+        resists: list[str],
+        immunities: list[str],
+        actions: list[Action]
+    ) -> None:
+        super().__init__(
+            FeatureType.MultiAction,
+            name,
+            unlock,
+            shortDesc,
+            longDesc,
+            resists,
+            immunities
+        )
+        self.actions = actions
+
+
+class Feature_Selection(Feature):
+
+    def __init__(
+        self,
+        name: str,
+        unlock: int,
+        shortDesc: str,
+        longDesc: str | None,
+        resists: list[str],
+        immunities: list[str],
+        actions: list[Action]
+    ) -> None:
+        super().__init__(
+            FeatureType.Selection,
+            name,
+            unlock,
+            shortDesc,
+            longDesc,
+            resists,
+            immunities
+        )
+        self.actions = actions
 
 
 def parseFeature(data: dict) -> Feature:
@@ -81,21 +129,33 @@ def parseFeature(data: dict) -> Feature:
                 immunities
             )
         case 'action':
-            ifStr = str(data["if"])
-            thenStr = str(data["then"])
-            return Feature_Action(
+            action = parseAction(data["action"])
+            return Feature_Action(name, unlock, shortDesc, longDesc, resists, immunities, action)
+        case 'multi-action':
+            actions = []
+            for x in data["actions"]:
+                actions.append(parseAction(x))
+            return Feature_MultiAction(
                 name,
                 unlock,
                 shortDesc,
                 longDesc,
                 resists,
                 immunities,
-                ifStr,
-                thenStr
+                actions
             )
-        case 'multi-action':
-            pass
         case 'selection':
-            pass
+            actions = []
+            for x in data["actions"]:
+                actions.append(parseAction(x))
+            return Feature_Selection(
+                name,
+                unlock,
+                shortDesc,
+                longDesc,
+                resists,
+                immunities,
+                actions
+            )
         case _:
             raise RuntimeError(f"Invalid feature type: '{ftypeStr}'")

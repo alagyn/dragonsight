@@ -1,5 +1,7 @@
 import enum
 
+from .recharge import Recharge
+
 
 class ActionType(enum.IntEnum):
     Single = enum.auto()
@@ -9,8 +11,20 @@ class ActionType(enum.IntEnum):
 
 class Action:
 
-    def __init__(self, name: str, desc: str | None, ifStr: str, thenStr: str) -> None:
+    def __init__(self, name: str, desc: str | None) -> None:
         self.name = name
         self.desc = desc
-        self.ifStr = ifStr
-        self.thenStr = thenStr
+
+    def available(self) -> bool:
+        raise NotImplementedError()
+
+    def recharge(self, when: Recharge):
+        raise NotImplementedError()
+
+
+class Action_Single(Action):
+    pass
+
+
+def parseAction(data: dict) -> Action:
+    pass

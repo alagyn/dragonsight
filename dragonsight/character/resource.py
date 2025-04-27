@@ -1,17 +1,13 @@
 import enum
-from resourceStack import ResourceStack
+
+from ..resourceStack import ResourceStack
+from .recharge import Recharge, When, parseRecharge
 
 
 class ResourceMaxType(enum.IntEnum):
     Constant = enum.auto()
     Level = enum.auto()
     Expr = enum.auto()
-
-
-class Recharge(enum.IntEnum):
-    Daily = enum.auto()
-    ShortRest = enum.auto()
-    LongRest = enum.auto()
 
 
 class _ResourceMax:
@@ -56,36 +52,18 @@ class _ResourceMaxExpr(_ResourceMax):
 
 class Resource:
 
-    def __init__(
-        self,
-        name: str,
-        rID: str,
-        rMax: _ResourceMax,
-        rechargeWhen: Recharge,
-        rechargeAmntStr: str,
-    ) -> None:
+    def __init__(self, name: str, rID: str, rMax: _ResourceMax, recharge: Recharge) -> None:
         self.name = name
         self.rID = rID
         self.rMax = rMax
-        self.rechargeWhen = rechargeWhen
-        self.rechargeAmntStr = rechargeAmntStr
+        self.curValue = 0
+        self._recharge = recharge
 
-    def recharge(self, when: Recharge):
-        if self.rechargeWhen == Recharge.Daily:
-            # Recharge only when a new day
-            if when == Recharge.Daily:
-                self._recharge()
-        elif self.rechargeWhen == Recharge.LongRest:
-            # Recharge only on a long rest
-            if when == Recharge.LongRest:
-                self._recharge()
-        # else we recharge on Short/Long
-        elif when != Recharge.Daily:
-            self._recharge()
-
-    def _recharge(self):
-        # TODO
-        pass
+    def recharge(self, when: When, res: ResourceStack):
+        self.curValue += self._recharge.do(when, res)
+        rMax = self.rMax.getMax(res)
+        if self.curValue > rMax:
+            self.curValue = rMax
 
 
 def parseResource(data: dict) -> Resource:
@@ -115,17 +93,7 @@ def parseResource(data: dict) -> Resource:
 
     # Recharge
     rechargeData = data["recharge"]
-    rechargeAmntStr = str(rechargeData["amnt"])
-    rechargeWhenStr = str(rechargeData["when"])
+    recharge = parseRecharge(rechargeData)
 
-    match rechargeWhenStr.lower():
-        case "daily":
-            rechargeWhen = Recharge.Daily
-        case 'short-rest':
-            rechargeWhen = Recharge.ShortRest
-        case 'long-rest':
-            rechargeWhen = Recharge.LongRest
-        case _:
-            raise RuntimeError(f"Invalid recharge type: '{rechargeWhenStr}'")
-
-    return Resource(name, rID, rMax, rechargeWhen, rechargeAmntStr)
+    # TODO
+    return Resource(name, rID, rMax, recharge)
