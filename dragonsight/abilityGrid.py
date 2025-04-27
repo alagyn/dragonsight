@@ -22,21 +22,30 @@ class AbilityModal:
         """
         out = False
         vp = im.GetMainViewport()
-        center = im.Vec2(vp.Pos.x + vp.Size.x * 0.5,
-                         vp.Pos.y + vp.Size.y * 0.5)
+        center = im.Vec2(vp.Pos.x + vp.Size.x * 0.5, vp.Pos.y + vp.Size.y * 0.5)
         im.SetNextWindowPos(center, im.Cond.Appearing, im.Vec2(0.5, 0.5))
         # Maybe this can just be a normal popup?
         # only diff with a modal is you can't exit by clicking outside it
-        if im.BeginPopupModal("add_ability_modal", None,
-                              im.WindowFlags.AlwaysAutoResize):
-            im.InputText("Name", self.name)
-            im.InputTextMultiline("Desc", self.desc)
+        if im.BeginPopupModal("add_ability_modal", None, im.WindowFlags.AlwaysAutoResize):
             if im.Button("Accept"):
                 out = True
                 im.CloseCurrentPopup()
             im.SameLine()
             if im.Button("Cancel"):
                 im.CloseCurrentPopup()
+
+            im.Separator()
+
+            im.InputText("Name", self.name)
+            im.InputTextMultiline("Desc", self.desc)
+
+            if im.BeginTable("_modal_table", 2):
+                im.TableNextColumn()
+                # Counters
+                if im.Button("Add Counter"):
+                    pass
+                im.TableNextColumn()
+                # rolls
 
             im.EndPopup()
         return out
@@ -57,11 +66,10 @@ class AbilityGrid:
 
             # Noop if not needed
             if self.abilityModal.render():
-                player.addAbility(self.abilityModal.name.view(),
-                                  self.abilityModal.desc.view())
+                player.addAbility(self.abilityModal.name.view(), self.abilityModal.desc.view())
 
-            if im.BeginTable("_ability_grid", GRID_SIZE,
-                             AbilityGrid.TABLE_FLAGS):
+            # TODO min col size?
+            if im.BeginTable("_ability_grid", GRID_SIZE, AbilityGrid.TABLE_FLAGS):
                 for ability in player.abilities:
                     im.TableNextColumn()
                     im.TextWrapped(ability.name)
