@@ -60,21 +60,9 @@ class AbilityGrid:
 
     def render(self, player: Player):
         if im.Begin("Abilities"):
-            if im.Button("Add Ability"):
-                im.OpenPopup("add_ability_modal")
-                self.abilityModal.clear()
-
-            # Noop if not needed
-            if self.abilityModal.render():
-                player.addAbility(self.abilityModal.name.view(), self.abilityModal.desc.view())
 
             # TODO min col size?
             if im.BeginTable("_ability_grid", GRID_SIZE, AbilityGrid.TABLE_FLAGS):
-                for ability in player.abilities:
-                    im.TableNextColumn()
-                    im.TextWrapped(ability.name)
-                    im.Separator()
-                    im.TextWrapped(ability.desc)
-
+                pass
                 im.EndTable()
         im.End()

@@ -1,7 +1,5 @@
 import sqlite3
 import os
-from .ability import Ability, Roll, Counter
-from .dbWriter import DBWriter
 
 _RESOURCES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS
@@ -18,8 +16,7 @@ class Player:
     def __init__(self, dbFile: str):
         needInit = not os.path.exists(dbFile)
 
-        self._dbConn = sqlite3.connect(dbFile)
-        self.db = DBWriter(self._dbConn)
+        self.db = sqlite3.connect(dbFile)
 
         # Resources
         self.res: dict[str,

@@ -54,18 +54,28 @@ class _ResourceMaxExpr(_ResourceMax):
 
 class Resource:
 
-    def __init__(self, name: str, rID: str, rMax: _ResourceMax, recharge: Recharge) -> None:
+    def __init__(
+        self,
+        name: str,
+        rID: str,
+        rMax: _ResourceMax,
+        recharge: Recharge,
+        res: ResourceMap
+    ) -> None:
         self.name = name
         self.rID = rID
         self.rMax = rMax
         self._recharge = recharge
+
+        if self.rID not in res:
+            res[self.rID] = 0
 
     def recharge(self, when: When, res: ResourceMap):
         rMax = self.rMax.getMax(res)
         self._recharge.recharge(when, res, self.rID, rMax)
 
 
-def parseResource(data: dict, namespace: list[str], res: ResourceMap) -> Resource:
+def parseResource(data: dict, namespace: str, res: ResourceMap) -> Resource:
     name = str(data["name"])
     rID = str(data["id"])
 
@@ -78,7 +88,7 @@ def parseResource(data: dict, namespace: list[str], res: ResourceMap) -> Resourc
         case 'level':
             if not isinstance(maxValue, list):
                 raise RuntimeError()
-            rMax = _ResourceMaxLevel(maxValue, ".".join(namespace))
+            rMax = _ResourceMaxLevel(maxValue, namespace)
         case 'constant':
             if not isinstance(maxValue, int):
                 raise RuntimeError()
@@ -96,4 +106,4 @@ def parseResource(data: dict, namespace: list[str], res: ResourceMap) -> Resourc
     whenStr = str(rechargeData["when"])
     rechargeWhen = When.parse(whenStr)
 
-    return Resource(name, rID, rMax, Recharge(rechargeWhen, amntStr))
+    return Resource(name, rID, rMax, Recharge(rechargeWhen, amntStr), res)
