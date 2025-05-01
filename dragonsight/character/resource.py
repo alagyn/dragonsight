@@ -1,7 +1,8 @@
 import enum
 
-from ..resourceStack import ResourceStack
-from .recharge import Recharge, When, parseRecharge
+from .recharge import When, Recharge
+from .resourceMap import ResourceMap
+from dragonsight.expression import Expression
 
 
 class ResourceMaxType(enum.IntEnum):
@@ -15,7 +16,7 @@ class _ResourceMax:
     def __init__(self, maxType: ResourceMaxType) -> None:
         self.maxType = maxType
 
-    def getMax(self, res: ResourceStack) -> int:
+    def getMax(self, res: ResourceMap) -> int:
         raise NotImplementedError()
 
 
@@ -25,29 +26,30 @@ class _ResourceMaxConstant(_ResourceMax):
         super().__init__(ResourceMaxType.Constant)
         self.maxVal = maxVal
 
-    def getMax(self, res: ResourceStack) -> int:
+    def getMax(self, res: ResourceMap) -> int:
         return self.maxVal
 
 
 class _ResourceMaxLevel(_ResourceMax):
 
-    def __init__(self, values: list[int]) -> None:
+    def __init__(self, values: list[int], namespace: str) -> None:
         super().__init__(ResourceMaxType.Level)
-        self.values = values
+        self._values = values
+        self._key = f'{namespace}.level'
 
-    def getMax(self, res: ResourceStack) -> int:
-        return self.values[res["sorcerer_level"]]
+    def getMax(self, res: ResourceMap) -> int:
+        curLevel = res[self._key]
+        return self._values[curLevel]
 
 
 class _ResourceMaxExpr(_ResourceMax):
 
     def __init__(self, maxExpr: str) -> None:
         super().__init__(ResourceMaxType.Expr)
-        self.maxExpr = maxExpr
+        self._maxExpr = Expression(maxExpr)
 
-    def getMax(self, res: ResourceStack) -> int:
-        # TODO for now, just assume the value is a key in the resources
-        return res[self.maxExpr]
+    def getMax(self, res: ResourceMap) -> int:
+        return self._maxExpr.eval(res)
 
 
 class Resource:
@@ -56,17 +58,14 @@ class Resource:
         self.name = name
         self.rID = rID
         self.rMax = rMax
-        self.curValue = 0
         self._recharge = recharge
 
-    def recharge(self, when: When, res: ResourceStack):
-        self.curValue += self._recharge.do(when, res)
+    def recharge(self, when: When, res: ResourceMap):
         rMax = self.rMax.getMax(res)
-        if self.curValue > rMax:
-            self.curValue = rMax
+        self._recharge.recharge(when, res, self.rID, rMax)
 
 
-def parseResource(data: dict) -> Resource:
+def parseResource(data: dict, namespace: list[str], res: ResourceMap) -> Resource:
     name = str(data["name"])
     rID = str(data["id"])
 
@@ -79,7 +78,7 @@ def parseResource(data: dict) -> Resource:
         case 'level':
             if not isinstance(maxValue, list):
                 raise RuntimeError()
-            rMax = _ResourceMaxLevel(maxValue)
+            rMax = _ResourceMaxLevel(maxValue, ".".join(namespace))
         case 'constant':
             if not isinstance(maxValue, int):
                 raise RuntimeError()
@@ -93,7 +92,8 @@ def parseResource(data: dict) -> Resource:
 
     # Recharge
     rechargeData = data["recharge"]
-    recharge = parseRecharge(rechargeData)
+    amntStr = str(rechargeData["amnt"])
+    whenStr = str(rechargeData["when"])
+    rechargeWhen = When.parse(whenStr)
 
-    # TODO
-    return Resource(name, rID, rMax, recharge)
+    return Resource(name, rID, rMax, Recharge(rechargeWhen, amntStr))

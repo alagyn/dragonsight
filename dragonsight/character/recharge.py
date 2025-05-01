@@ -1,7 +1,7 @@
 import enum
 
 from dragonsight.expression import Expression
-from dragonsight.resourceStack import ResourceStack
+from .resourceMap import ResourceMap
 
 
 class When(enum.IntEnum):
@@ -9,23 +9,27 @@ class When(enum.IntEnum):
     ShortRest = enum.auto()
     LongRest = enum.auto()
 
+    @classmethod
+    def parse(cls, whenStr: str) -> 'When':
+        match whenStr.lower():
+            case "daily":
+                rechargeWhen = When.Daily
+            case 'short-rest':
+                rechargeWhen = When.ShortRest
+            case 'long-rest':
+                rechargeWhen = When.LongRest
+            case _:
+                raise RuntimeError(f"Invalid recharge type: '{whenStr}'")
 
-class Recharge:
+        return rechargeWhen
 
-    def __init__(self, when: When, amnt: str) -> None:
-        self.when = when
-        self.amnt = Expression(amnt)
-
-    def do(self, when: When, res: ResourceStack) -> int:
-        """
-        Return amount we should recharge
-        """
+    def should(self, when: 'When') -> bool:
         should = False
-        if self.when == When.Daily:
+        if self == When.Daily:
             # Recharge only when a new day
             if when == When.Daily:
                 should = True
-        elif self.when == When.LongRest:
+        elif self == When.LongRest:
             # Recharge only on a long rest
             if when == When.LongRest:
                 should = True
@@ -33,24 +37,32 @@ class Recharge:
         else:
             should = when != When.Daily
 
-        if should:
-            return self.amnt.eval(res)
+        return should
+
+
+class Recharge:
+
+    def __init__(self, when: When, rechargeExpr: str) -> None:
+        self._rechargeWhen = when
+        if rechargeExpr != "all":
+            self._rechargeExpr = Expression(rechargeExpr)
         else:
-            return 0
+            self._rechargeExpr = None
 
+    def recharge(self, when: When, res: ResourceMap, key: str, maxVal: int) -> None:
+        """
+        Recharge some resource specified by key, clipped to maxVal
+        """
+        if self._rechargeWhen.should(when):
+            curVal = res[key]
 
-def parseRecharge(data: dict) -> Recharge:
-    amntStr = str(data["amnt"])
-    whenStr = str(data["when"])
+            # Only none if we should recharge all
+            if self._rechargeExpr:
+                amnt = self._rechargeExpr.eval(res)
+                newVal = curVal + amnt
+                if newVal > maxVal:
+                    newVal = maxVal
+            else:
+                newVal = maxVal
 
-    match whenStr.lower():
-        case "daily":
-            rechargeWhen = When.Daily
-        case 'short-rest':
-            rechargeWhen = When.ShortRest
-        case 'long-rest':
-            rechargeWhen = When.LongRest
-        case _:
-            raise RuntimeError(f"Invalid recharge type: '{whenStr}'")
-
-    return Recharge(rechargeWhen, amntStr)
+            res[key] = newVal

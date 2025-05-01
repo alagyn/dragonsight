@@ -1,4 +1,4 @@
-from .resourceStack import ResourceStack
+from .character.resourceMap import ResourceMap
 
 
 class Expression:
@@ -12,5 +12,5 @@ class Expression:
                 continue
             values.append(x)
 
-    def eval(self, res: ResourceStack) -> int:
+    def eval(self, res: ResourceMap) -> int:
         return 0

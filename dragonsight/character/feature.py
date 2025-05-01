@@ -1,6 +1,7 @@
 import enum
 
 from .action import Action, parseAction
+from .resourceMap import ResourceMap
 
 
 class FeatureType(enum.IntEnum):
@@ -98,7 +99,7 @@ class Feature_Selection(Feature):
         self.actions = actions
 
 
-def parseFeature(data: dict) -> Feature:
+def parseFeature(data: dict, namespace: str, res: ResourceMap) -> Feature:
     # TODO error handling
     name = str(data['name'])
     ftypeStr = str(data['type'])
@@ -129,12 +130,12 @@ def parseFeature(data: dict) -> Feature:
                 immunities
             )
         case 'action':
-            action = parseAction(data["action"])
+            action = parseAction(data["action"], namespace + ".action", res)
             return Feature_Action(name, unlock, shortDesc, longDesc, resists, immunities, action)
         case 'multi-action':
             actions = []
-            for x in data["actions"]:
-                actions.append(parseAction(x))
+            for idx, x in enumerate(data["actions"]):
+                actions.append(parseAction(x, namespace + f'.action{idx}', res))
             return Feature_MultiAction(
                 name,
                 unlock,
@@ -146,8 +147,8 @@ def parseFeature(data: dict) -> Feature:
             )
         case 'selection':
             actions = []
-            for x in data["actions"]:
-                actions.append(parseAction(x))
+            for idx, x in enumerate(data["actions"]):
+                actions.append(parseAction(x, namespace + f'.action{idx}', res))
             return Feature_Selection(
                 name,
                 unlock,

@@ -38,7 +38,7 @@ resources:
     # other resources could have maxes based on something else, i.e. bardic insp is == cha mod
     # max:
       # type: expr
-      # value: cha_mod
+      # value: base.cha_mod
     recharge: 
       amnt: all
       when: long-rest
@@ -53,45 +53,45 @@ features:
     actions:
       - name: Create 1st level
         type: resource
-        cost: 2 sorcery_pts
+        cost: 2 sorcerer.sorcery_pts
         result: 1 spell_slots_lvl1
       - name: Create 2nd level
         type: resource
-        cost: 3 sorcery_pts
+        cost: 3 sorcerer.sorcery_pts
         result: 1 spell_slots_lvl2
       - name: Create 3nd level
         type: resource
-        cost: 5 sorcery_pts
+        cost: 5 sorcerer.sorcery_pts
         result: 1 spell_slots_lvl3
       - name: Create 4nd level
         type: resource
-        cost: 6 sorcery_pts
+        cost: 6 sorcerer.sorcery_pts
         result: 1 spell_slots_lvl4
       - name: Create 5nd level
         type: resource
-        cost: 7 sorcery_pts
+        cost: 7 sorcerer.sorcery_pts
         result: 1 spell_slots_lvl5
 
       - name: Consume 1st level
         type: resource
         cost: 1 spell_slots_lvl1
-        result: 1 sorcery_pts
+        result: 1 sorcerer.sorcery_pts
       - name: Consume 2nd level
         type: resource
         cost: 1 spell_slots_lvl2
-        result: 2 sorcery_pts
+        result: 2 sorcerer.sorcery_pts
       - name: Consume 3nd level
         type: resource
         cost: 1 spell_slots_lvl3
-        result: 3 sorcery_pts
+        result: 3 sorcerer.sorcery_pts
       - name: Consume 4nd level
         type: resource
         cost: 1 spell_slots_lvl4
-        result: 4 sorcery_pts
+        result: 4 sorcerer.sorcery_pts
       - name: Consume 5nd level
         type: resource
         cost: 1 spell_slots_lvl5
-        result: 5 sorcery_pts
+        result: 5 sorcerer.sorcery_pts
   
   - name: Metamagic
     type: selection
@@ -103,9 +103,9 @@ features:
       - name: Careful Spell
         desc: TODO
         type: resource
-        cost: 1 sorcerer
+        cost: 1 sorcerer.sorcery_pts
       - name: Distant Spell
         desc: TODO
         type: resource
-        cost: 1 sorcerer
+        cost: 1 sorcerer.sorcery_pts
 

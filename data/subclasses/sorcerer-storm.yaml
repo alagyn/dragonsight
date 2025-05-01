@@ -55,7 +55,8 @@ features:
       you can't do so again until you finish a short or long rest.
     action:
       type: single-use
-      recharge: short-rest
+      recharge:
+        when: short-rest
     
   - name: Wind Soul
     short-desc: You gain immunity to lightning and thunder damage.
