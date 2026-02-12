@@ -1,2 +1,1 @@
-py-imgui-redux>=3.4.1
-pyyaml>=6.0.2
+py-imgui-redux>=5.1.1

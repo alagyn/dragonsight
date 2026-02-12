@@ -1,2 +1,2 @@
 # dragonsight
-TTRPG player ability reference screen
+Generic TTRPG Resource Tracker
