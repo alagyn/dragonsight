@@ -1,0 +1,15 @@
+name: Ring of the Hydromancer
+
+counters:
+  - name: Charges
+    id: charges
+    max:
+      type: constant
+      value: 9
+    recharge: 1d6+3 dawn
+
+
+features:
+  name: 
+  type: flavor
+  unlock: 0

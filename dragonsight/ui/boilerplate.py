@@ -8,12 +8,16 @@ from imgui import glfw
 DrawFunc = Callable[[], None]
 
 
-def window_mainloop(title: str,
-                    width: int,
-                    height: int,
-                    draw: DrawFunc,
-                    init: Optional[Callable[[], None]] = None,
-                    cleanup: Optional[Callable[[], None]] = None):
+def window_mainloop(
+    title: str,
+    width: int,
+    height: int,
+    draw: DrawFunc,
+    init: Optional[Callable[[],
+                            None]] = None,
+    cleanup: Optional[Callable[[],
+                               None]] = None
+):
     """
     Create a single window and enter render loop until either the window is closed
     or the draw() func returns true.
@@ -21,8 +25,6 @@ def window_mainloop(title: str,
     cleanup func is called once before imgui contexts are destroyed
     """
 
-    # set error callback func
-    #glfw.SetErrorCallback(errorCallback)
     if not glfw.Init():
         print("Cannot initialize GLFW")
         return

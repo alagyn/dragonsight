@@ -1,6 +1,6 @@
-from .ui_boilerplate import window_mainloop
+from .ui.boilerplate import window_mainloop
 
-from .abilityGrid import AbilityGrid
+from .ui.abilityGrid import AbilityGrid
 from .player import Player
 
 
@@ -23,8 +23,7 @@ class UI:
 
 def main():
     ui = UI()
-    window_mainloop("Dragonsight", 1024, 768, ui.render, ui.ui_init,
-                    ui.cleanup)
+    window_mainloop("Dragonsight", 1024, 768, ui.render, ui.ui_init, ui.cleanup)
 
 
 if __name__ == '__main__':
