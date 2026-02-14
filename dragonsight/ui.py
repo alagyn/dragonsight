@@ -208,7 +208,8 @@ class AddResourceModal:
         """
         res.name = self.name.copy()
         res.maxVal = self.max.val
-        res.value = min(res.value, res.maxVal)
+        if res.maxVal >= 0:
+            res.value = min(res.value, res.maxVal)
         res.rechargeWhen = self.rechargeWhen
         if self.rechargeAll.val:
             res.rechargeAmount = RechargeAmount.All
