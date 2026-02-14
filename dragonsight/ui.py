@@ -1,12 +1,13 @@
 import os
 import json
 import sys
-import uuid
 import glob
+import subprocess
 
 from .ui_boilerplate import window_mainloop
 from .resource import Resource, When, RechargeAmount
 
+import markstore
 import imgui as im
 
 GRID_SIZE = 6
@@ -42,6 +43,13 @@ def getDataDir() -> str:
     else:
         base = os.path.dirname(sys.argv[0])
     return os.path.join(base, 'bdd', 'dragonsight')
+
+
+def openDirInExplorer(path: str):
+    if os.name == "nt":
+        os.startfile(path)
+    elif os.name == 'posix':
+        subprocess.Popen(["xdg-open", path])
 
 
 SAN_TABLE = str.maketrans({
@@ -266,9 +274,9 @@ class DragonSightUI:
         self.profiles: list[Profile] = []
         self.selectProfIdx = 0
 
-        for p in glob.glob(os.path.join(self.profileDir, "*.json")):
+        for p in glob.glob(os.path.join(self.profileDir, "*.md")):
             with open(p, mode='rb') as f:
-                prof = json.load(f)
+                prof = markstore.load(f)
             self.profiles.append(Profile(prof['name'], p))
             print("Loaded profile:", self.profiles[-1].name.view())
 
@@ -319,7 +327,7 @@ class DragonSightUI:
         if p.file is None:
             return
         with open(p.file, mode='rb') as f:
-            data = json.load(f)
+            data = markstore.load(f)
 
         tables = data["tables"]
 
@@ -330,8 +338,8 @@ class DragonSightUI:
             for entry in res:
                 name = entry['name']
                 desc = entry['desc']
-                val = entry['val']
-                maxVal = entry['max']
+                val = int(entry['val'])
+                maxVal = int(entry['max'])
                 when = When[entry['when']]
                 amnt = RechargeAmount[entry["type"]]
 
@@ -381,11 +389,11 @@ class DragonSightUI:
             "tables": tables
         }
 
-        fileName = sanitizeStr(p.name.view()) + '-' + uuid.uuid4().hex + ".json"
+        fileName = f'{self.selectProfIdx:04d}-{sanitizeStr(p.name.view())}.md'
         outFile = os.path.join(self.profileDir, fileName)
         tmpFile = outFile + ".tmp"
-        with open(tmpFile, mode='w') as f:
-            json.dump(data, f)
+        with open(tmpFile, mode='wb') as f:
+            markstore.dump(data, f)
 
         if p.file is not None and os.path.exists(p.file):
             os.remove(p.file)
@@ -459,6 +467,11 @@ class DragonSightUI:
                     self.edit.val = False
 
                     self.loadResources()
+
+                im.SameLine(spacing=80)
+                if im.Button("Profile Folder"):
+                    openDirInExplorer(self.profileDir)
+                tooltip(f"{self.profileDir}")
 
             else:
                 if im.CheckBox("Edit", self.edit):
