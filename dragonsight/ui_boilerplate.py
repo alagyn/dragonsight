@@ -65,8 +65,12 @@ def window_mainloop(
     # Set window icon
     # Get a path to our image
     imageFile = os.path.join(os.path.dirname(__file__), "dragonsight-64.png")
-    icon = glfw.Image(imageFile)
-    glfw.SetWindowIcon(window, [icon])
+    try:
+        icon = glfw.Image(imageFile)
+        glfw.SetWindowIcon(window, [icon])
+    except Exception as err:
+        print("Can't open", imageFile)
+        print(err)
 
     # Create ImGui context
     im.CreateContext()
