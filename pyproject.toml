@@ -13,7 +13,7 @@ license = "MIT"
 
 dependencies = ["py-imgui-redux>=1.5.0", "markstore>=1.2.0"]
 
-[project.scripts]
+[project.gui-scripts]
 dragonsight = "dragonsight.ui:main"
 
 [tool.setuptools]
