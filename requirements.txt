@@ -1,2 +1,2 @@
 py-imgui-redux>=5.1.1
-markstore
+markstore>=1.2.0
