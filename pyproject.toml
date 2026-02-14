@@ -11,7 +11,7 @@ description = "A test module for testing"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = "MIT"
 
-dependencies = ["py-imgui-redux>=1.5.0"]
+dependencies = ["py-imgui-redux>=1.5.0", "markstore>=1.1.0"]
 
 [project.scripts]
 dragonsight = "dragonsight.ui:main"
@@ -22,5 +22,6 @@ packages = ["dragonsight"]
 [tool.diamondpack]
 mode = "app"
 include-tk = false
+# stdlib-whitelist = ["json", "subprocess", "glob", "re"]
 stdlib-blacklist = ["email", "turtle", "unittest"]
-debug-logs = true
+debug-logs = false
