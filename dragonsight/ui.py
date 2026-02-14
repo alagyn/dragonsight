@@ -29,6 +29,8 @@ GREEN = im.ColorConvertFloat4ToU32(im.Vec4(0.092, 0.672, 0.184, 1.0))
 
 FRAME_BG = im.Vec4(0.25, 0.25, 0.25, 0.54)
 
+NO_MAX_BUTTON = im.ColorConvertFloat4ToU32(im.Vec4(0.25, 0.25, 0.25, 0.54))
+
 # Progress bar colors
 PROG_FULL = im.ColorConvertFloat4ToU32(im.Vec4(0.11, 0.682, 0.432, 1.0))
 PROG_MID = im.ColorConvertFloat4ToU32(im.Vec4(0.742, 0.636, 0.073, 1.0))
@@ -96,8 +98,10 @@ def helpMarker(desc: str):
     tooltip(desc)
 
 
+DESC_FLAGS = im.InputTextFlags.AllowTabInput | im.InputTextFlags.WordWrap
+
+
 class AddResourceModal:
-    DESC_FLAGS = im.InputTextFlags.AllowTabInput | im.InputTextFlags.WordWrap
 
     def __init__(self) -> None:
         self.name = im.StrRef(1024)
@@ -126,28 +130,37 @@ class AddResourceModal:
                 self.index.val = min(self.numRes, max(0, self.index.val))
         im.PushItemWidth(200)
         if im.InputInt("Max Charges", self.max):
-            self.max.val = max(0, self.max.val)
-        tooltip("Set to 0 to disable charges display. Good for quick references!")
+            self.max.val = max(-1, self.max.val)
+        tooltip(
+            "Set to 0 to disable charges display. Good for quick references!\n"
+            "Set to -1 to allow infinite maximums."
+        )
         im.BeginDisabled(self.max.val == 0)
         if im.BeginCombo("Recharge", self.rechargeWhen.toStr()):
             for x in When:
                 if im.Selectable(x.toStr()):
                     self.rechargeWhen = x
             im.EndCombo()
-        im.BeginDisabled(self.rechargeWhen == When.Never or self.rechargeAll.val)
+
+        im.BeginDisabled(
+            self.rechargeWhen == When.Never or (self.rechargeAll.val and not self.max.val == -1)
+        )
+
         im.InputText("Recharge Amount", self.rechargeAmnt)
-        im.SameLine()
-        helpMarker("Enter a dice roll formula such as '2d6+2', '1d20', or simply '+2'")
+        tooltip("Enter a dice roll formula such as '2d6+2', '1d20', or simply '+2'")
         im.PopItemWidth()
 
+        im.EndDisabled()  # End disabled if never recharge, or recharge all
+
         im.SameLine()
+        im.BeginDisabled(self.max.val == -1)
         im.CheckBox("All", self.rechargeAll)
         tooltip("Toggle to recharge all instead of a dice roll")
+        im.EndDisabled()  # End disabled if max == -1
 
-        im.EndDisabled()
-        im.EndDisabled()
+        im.EndDisabled()  # End disabled if charges == 0
 
-        im.InputTextMultiline("Description", self.desc, flags=AddResourceModal.DESC_FLAGS)
+        im.InputTextMultiline("Description", self.desc, flags=DESC_FLAGS)
         if im.Button("Save"):
             self.submit = True
         im.SameLine(spacing=30)
@@ -185,7 +198,7 @@ class AddResourceModal:
             self.rechargeAll.val = False
             self.rechargeAmnt.set(str(res.rechargeRoll))
 
-        self.desc.set(res.desc)
+        self.desc.set(res.desc.copy())
         self.index.val = idx
         self.numRes = numRes
 
@@ -203,7 +216,7 @@ class AddResourceModal:
             res.rechargeAmount = RechargeAmount.Roll
             res.setRoll(self.rechargeAmnt.copy())
 
-        res.desc = self.desc.copy()
+        res.desc.set(self.desc.copy())
         return self.index.val
 
     def getResource(self):
@@ -218,7 +231,7 @@ class AddResourceModal:
             name=self.name.copy(),
             desc=self.desc.copy(),
             maxVal=self.max.val,
-            value=self.max.val,
+            value=self.max.val if self.max.val > 0 else 0,
             when=self.rechargeWhen,
             rechargeAmount=rechargeAmount,
             rollStr=rollStr
@@ -367,7 +380,7 @@ class DragonSightUI:
             for x in table.resources:
                 d = {
                     "name": x.name,
-                    "desc": x.desc,
+                    "desc": x.desc.copy(),
                     "val": x.value,
                     "max": x.maxVal,
                     "when": x.rechargeWhen.name,
@@ -708,6 +721,7 @@ class DragonSightUI:
                 else:
                     im.Text(str(res.rechargeRoll))
             im.PopStyleColor(1)
+
         if res.maxVal == 1:
             state = im.BoolRef(res.value == 1)
             if im.CheckBox("Charged", state):
@@ -715,22 +729,27 @@ class DragonSightUI:
                     res.value = 1
                 else:
                     res.value = 0
-        elif res.maxVal > 0:
+        elif res.maxVal != 0:
             if im.Button("-") and res.value > 0:
                 res.value -= 1
             im.SameLine()
-            im.SetNextItemWidth(150)
-            perc = res.value / res.maxVal
-            if perc > 0.6:
-                col = PROG_FULL
-            elif perc > 0.25:
-                col = PROG_MID
+            if res.maxVal > 0:
+                perc = res.value / res.maxVal
+                if perc > 0.6:
+                    col = PROG_FULL
+                elif perc > 0.25:
+                    col = PROG_MID
+                else:
+                    col = PROG_LOW
+                im.PushStyleColor(im.Col.PlotHistogram, col)
+                im.SetNextItemWidth(150)
+                im.ProgressBar(perc, size_arg=im.Vec2(0, 0), overlay=f"{res.value}/{res.maxVal}")
+                im.PopStyleColor(1)
             else:
-                col = PROG_LOW
-            im.PushStyleColor(im.Col.PlotHistogram, col)
-            im.ProgressBar(perc, size_arg=im.Vec2(0, 0), overlay=f"{res.value}/{res.maxVal}")
+                im.PushStyleColor(im.Col.Button, NO_MAX_BUTTON)
+                im.Button(f'{res.value}', im.Vec2(150, 0))
+                im.PopStyleColor(1)
             tooltip("Click Me!")
-            im.PopStyleColor(1)
             first = False
             if im.IsItemClicked():
                 im.OpenPopup("Fast Edit")
@@ -751,10 +770,13 @@ class DragonSightUI:
                 im.EndPopup()
 
             im.SameLine()
-            if im.Button("+") and res.value < res.maxVal:
+            if im.Button("+") and (res.maxVal < 0 or res.value < res.maxVal):
                 res.value += 1
 
-        im.TextWrapped(res.desc)
+        if res.maxVal != 0:
+            im.TextWrapped(res.desc.view())
+        else:
+            im.InputTextMultiline("##desc", res.desc, im.Vec2(220, 100), flags=DESC_FLAGS)
 
         im.Dummy(im.Vec2(2, 5))
 

@@ -2,6 +2,8 @@ import enum
 
 from dragonsight.dice import DiceRoll
 
+import imgui as im
+
 
 class When(enum.IntEnum):
     Never = enum.auto()
@@ -51,7 +53,7 @@ class Resource:
         rollStr: str | None,
     ) -> None:
         self.name = name
-        self.desc = desc
+        self.desc = im.StrRef(desc, 256)
         self.value = value
         self.maxVal = maxVal
         self.rechargeWhen: When = when
@@ -61,7 +63,9 @@ class Resource:
             self.rechargeRoll = DiceRoll(rollStr)
 
     def clamp(self):
-        self.value = max(0, min(self.value, self.maxVal))
+        self.value = max(0, self.value)
+        if self.maxVal > 0:
+            self.value = min(self.value, self.maxVal)
 
     def setRoll(self, rollStr: str):
         self.rechargeRoll = DiceRoll(rollStr)
