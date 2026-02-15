@@ -26,3 +26,6 @@ include-tk = false
 # stdlib-whitelist = ["json", "subprocess", "glob", "re"]
 stdlib-blacklist = ["email", "turtle", "unittest"]
 debug-logs = false
+
+[tool.diamondpack.icons]
+dragonsight = "dragonsight/dragonsight.ico"
